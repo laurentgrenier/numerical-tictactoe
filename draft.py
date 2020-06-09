@@ -90,31 +90,41 @@ def recursive_exploration(grid, pfirst_pawns, psecond_pawns, action=(0, 0, 0, 0,
 
 
 def get_best_move(possibilities):
-    values = [(node[4], float(node[3] / len(node[4].split(".")))) for node in possibilities]
-    dtype = [('path', 'S10'), ('score', float)]
+    # get (path, score, level, row, col, pawn) from possibilities
+    values = [(node[4],
+               round(float(node[3] / len(node[4].split("."))), 2),
+               len(node[4].split("."))-1,
+               node[0], node[1], node[2])
+              for node in possibilities]
+    dtype = [('path', 'S10'), ('score', float), ('level', int),
+             ('row', int), ('col', int), ('pawn', int)]
     values = np.array(values, dtype=dtype)
     values = np.sort(values, order=['score'])
 
-    max_value = values[-1][1]
-    current_value = max_value
-    preselected_nodes = []
-    k=0
-    for k in range(0, 10000):
-        current_value = values[-1-k][1]
-        if current_value == max_value:
-            preselected_nodes.append(values[-1-k])
-            k += 1
-        else:
-            break
+    # if the worst move could lead to a bad situation
+    if values[0]['score'] < 0 and values[0]['level'] == 2:
+        # Search for all the moves which can avoid that situation
+        preselected_nodes = [value for value in values if value[3] == values[0][3]
+                             and value[4] == values[0][4] and value[2] == 1]
+        print("preselected_nodes: ", preselected_nodes)
+    else:
+        max_value = values[-1][1]
+        current_value = max_value
+        preselected_nodes = []
+        k=0
+        for k in range(0, 10000):
+            current_value = values[-1-k][1]
+            if current_value == max_value:
+                preselected_nodes.append(values[-1-k])
+                k += 1
+            else:
+                break
 
-    print(preselected_nodes)
+    node = preselected_nodes[randint(0, len(preselected_nodes))]
 
-    max_node_path = preselected_nodes[randint(0, len(preselected_nodes))]
-    print(max_node_path)
-
-    parents_paths = max_node_path[0].decode("utf-8").split(".")
+    parents_paths = node[0].decode("utf-8").split(".")
     selected_path = parents_paths[0] + "." + parents_paths[1]
-    print("selected_path: ", selected_path)
+
     for possibility in possibilities:
         if possibility[4] == selected_path:
             return possibility
@@ -165,10 +175,9 @@ def game():
                 # get possibles actions
                 possibilities = recursive_exploration(board.grid, players[turn % 2]['pawns'],
                                                       players[(turn + 1) % 2]['pawns'], limit=4, actions=[])
+
                 # get the best move
                 action = get_best_move(possibilities)
-
-                print("action: ", action)
                 move = [action[0], action[1], action[2]]
 
                 if move[2] in players[turn % 2]['pawns']:
@@ -182,7 +191,7 @@ def game():
                     print("Invalid pawn for {}. Valid are: ".format(players[turn % 2]['name']),
                           players[turn % 2]['pawns'])
         if quit:
-            break;
+            break
 
     print(board.grid)
 
