@@ -106,7 +106,7 @@ class AI():
         values = np.sort(values, order=['score'])
 
         # if the worst move could lead to a bad situation
-        if values[0]['score'] < 0 and values[0]['level'] == 1:
+        if values[0]['score'] < 0 and values[0]['level'] == 2:
             # Search for all the moves which can avoid that situation
             preselected_nodes = [value for value in values if value[3] == values[0][3]
                                  and value[4] == values[0][4] and value[2] == 1]
@@ -246,12 +246,11 @@ class Game():
 
 
 
-
 # draws, player one wins, player two wins
-results = np.array([0,0,0])
-NUMBER_OF_GAMES = 1
-for i in tq.tqdm(range(0, NUMBER_OF_GAMES), total=NUMBER_OF_GAMES):
-    results[Game(3).launch(verbose=True)] += 1
-
-print(results)
+# results = np.array([0,0,0])
+# NUMBER_OF_GAMES = 1
+# for i in tq.tqdm(range(0, NUMBER_OF_GAMES), total=NUMBER_OF_GAMES):
+#     results[Game(3).launch(verbose=True)] += 1
+Game(2).launch(verbose=True)
+# print(results)
 
